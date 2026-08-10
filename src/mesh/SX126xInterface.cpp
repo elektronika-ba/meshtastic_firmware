@@ -440,6 +440,16 @@ template <typename T> bool SX126xInterface<T>::sleep()
 
 #ifdef SX126X_POWER_EN
     digitalWrite(SX126X_POWER_EN, LOW);
+
+	#if defined(ARCH_ESP32) && defined(SX126X_POWER_EN_RTC_HOLD)
+		// Keep an RTC-capable radio power/switch-enable pin LOW for the
+		// complete ESP32 deep-sleep interval.
+		if (rtc_gpio_is_valid_gpio((gpio_num_t)SX126X_POWER_EN)) {
+			rtc_gpio_hold_en((gpio_num_t)SX126X_POWER_EN);
+		} else {
+			LOG_WARN("SX126X_POWER_EN_RTC_HOLD requested, but GPIO%d is not RTC-capable", SX126X_POWER_EN);
+		}
+	#endif
 #endif
 
 #if HAS_LORA_FEM
